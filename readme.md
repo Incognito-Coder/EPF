@@ -18,3 +18,6 @@ this command flush all chain rules in iptables.
 ```bash
 ./epf.sh flush
 ```
+## Supported OSes
+* Ubuntu
+* CentOS
