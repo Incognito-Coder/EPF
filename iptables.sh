@@ -4,6 +4,28 @@ ip=$1
 ports=$2
 proto=$3
 
+install_req(){
+    # Check OS and set release variable
+    if [[ -f /etc/os-release ]]; then
+        source /etc/os-release
+        release=$ID
+    elif [[ -f /usr/lib/os-release ]]; then
+        source /usr/lib/os-release
+        release=$ID
+    else
+        echo "Failed to check the system OS, please contact the author!" >&2
+        exit 1
+    fi
+    echo "The OS release is: $release"
+    case "${release}" in
+        centos|fedora)
+            yum install -y -q net-tools
+        ;;
+        *)
+            apt install -y -q net-tools
+        ;;
+    esac
+}
 usage(){
     echo -e "Usage: iptables.sh 1 2 3\n1: Destination IP\n2: Desired Ports | Example Array of ports: 443,80,2083\n3: Protocol TCP/UDP lowercase."
 }
@@ -54,6 +76,7 @@ else
         flush
         exit 0
     else
+        install_req
         modify
     fi
 fi
