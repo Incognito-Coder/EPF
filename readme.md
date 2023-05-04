@@ -10,9 +10,9 @@ then you must see `epf.sh` in your current dir.
 ```bash
 bash epf.sh 185.132.80.187 443,8080,2083,2096 tcp
 ```
-First arg is your destination server.
-Second arg is Specific port,it can be single [443] or array [1234,8745,8585]
-Third arg is Protocol mode TCP/UDP pass lowercase string **tcp** , **udp**
+> First arg is your destination server. \
+> Second arg is Specific port,it can be single [443] or array [1234,8745,8585]. \
+> Third arg is Protocol mode TCP/UDP pass lowercase string **tcp** , **udp** .
 ## Cleaning IPTable Rules
 this command flush all chain rules in iptables.
 ```bash
