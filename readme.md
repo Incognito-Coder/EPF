@@ -18,6 +18,19 @@ this command flush all chain rules in iptables.
 ```bash
 ./epf.sh flush
 ```
+## Using Menu
+u can access to shell based menu with this command
+```bash
+sudo ./epf.sh menu
+```
+```
+ubuntu@fakemind:~$ sudo ./epf.sh menu
+Welcome to Easy Port Forwarder
+1) Port Forward   3) Port to Port   5) Save Rules     7) Print Usage
+2) NAT Forward    4) Flush Rules    6) Restore Rules  8) Quit
+Please enter your choice:
+```
+
 ## Supported OSes
 * Ubuntu
 * CentOS
