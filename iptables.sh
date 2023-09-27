@@ -9,7 +9,7 @@ install_req(){
     if [[ -f /etc/os-release ]]; then
         source /etc/os-release
         release=$ID
-    elif [[ -f /usr/lib/os-release ]]; then
+        elif [[ -f /usr/lib/os-release ]]; then
         source /usr/lib/os-release
         release=$ID
     else
@@ -22,7 +22,7 @@ install_req(){
             yum install -y -q net-tools
         ;;
         *)
-            apt install -y -q net-tools
+            apt install -y -q net-tools iptables-persistent
         ;;
     esac
 }
@@ -51,6 +51,24 @@ modify(){
     iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
 }
 
+modify_nat(){
+    echo -e "Easy Port Forwarder By Incognito Coder\nGithub Page: https://github.com/Incognito-Coder"
+    publicIP=$(hostname -I | awk '{print $1}')
+    interface=$(route | grep '^default' | grep -o '[^ ]*$')
+    echo "Enabling IP Forwarding"
+    sysctl net.ipv4.ip_forward=1 > /dev/null 2>&1
+    if iptables --table nat --list | grep -q "ssh"; then
+        echo "No need to forward SSH Port,Already Exist!"
+    else
+        echo "Forwarding SSH Port to $publicIP"
+        iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination $publicIP
+    fi
+    echo "Moving NAT to $ip"
+    iptables -t nat -A PREROUTING -j DNAT --to-destination $ip
+    echo "Finalizing Changes in IP Tables."
+    iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
+}
+
 flush(){
     echo "Stopping IPv4 firewall and allowing everyone..."
     ipt="/sbin/iptables"
@@ -68,6 +86,52 @@ flush(){
     $ipt -t raw -X
 }
 
+menu(){
+    echo "Welcome to Easy Port Forwarder"
+    PS3='Please enter your choice: '
+    options=("Port Forward" "NAT Forward" "Port to Port" "Flush Rules" "Save Rules" "Restore Rules" "Print Usage" "Quit")
+    select opt in "${options[@]}"
+    do
+        case $opt in
+            "Port Forward")
+                read -p "Enter Dest IP: " ip
+                read -p "Enter Dest Port/Ports separated: " ports
+                read -p "Enter ProtocolType TCP/UDP: " proto
+                modify
+                break
+            ;;
+            "NAT Forward")
+                read -p "Enter Dest IP: " ip
+                modify_nat
+                break
+            ;;
+            "Port to Port")
+                echo "you chose choice $REPLY which is $opt"
+            ;;
+            "Flush Rules")
+                flush
+                break
+            ;;
+            "Save Rules")
+                sudo /sbin/iptables-save > /etc/iptables/rules.v4
+                echo "Saved."
+            ;;
+            "Restore Rules")
+                sudo /sbin/iptables-restore < /etc/iptables/rules.v4
+                echo "Restored."
+            ;;
+            "Print Usage")
+                usage
+                break
+            ;;
+            "Quit")
+                break
+            ;;
+            *) echo "invalid option $REPLY";;
+        esac
+    done
+}
+
 if [[ $# -eq 0 ]] ; then
     usage
     exit 0
@@ -75,6 +139,9 @@ else
     if [[ $1 == "flush" ]]; then
         flush
         exit 0
+    elif [[ $1 == "menu" ]]; then
+        install_req > /dev/null 2>&1
+        menu
     else
         install_req
         modify
