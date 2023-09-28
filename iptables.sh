@@ -5,6 +5,7 @@ ports=$2
 proto=$3
 
 install_req(){
+    clear
     # Check OS and set release variable
     if [[ -f /etc/os-release ]]; then
         source /etc/os-release
@@ -25,6 +26,7 @@ install_req(){
             apt install -y -q net-tools iptables-persistent
         ;;
     esac
+    clear
 }
 usage(){
     echo -e "Usage: iptables.sh 1 2 3\n1: Destination IP\n2: Desired Ports | Example Array of ports: 443,80,2083\n3: Protocol TCP/UDP lowercase."
