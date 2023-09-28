@@ -140,7 +140,7 @@ else
         flush
         exit 0
     elif [[ $1 == "menu" ]]; then
-        install_req > /dev/null 2>&1
+        install_req
         menu
     else
         install_req
