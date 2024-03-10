@@ -21,9 +21,11 @@ install_req(){
     case "${release}" in
         centos|fedora)
             yum install -y -q net-tools
+            touch epfinstalled
         ;;
         *)
             apt install -y -q net-tools iptables-persistent
+            touch epfinstalled
         ;;
     esac
     clear
@@ -142,10 +144,14 @@ else
         flush
         exit 0
     elif [[ $1 == "menu" ]]; then
-        install_req
+        if ! [ -f ~/.alreadyran ]; then
+            install_req
+        fi
         menu
     else
-        install_req
+        if ! [ -f ~/.alreadyran ]; then
+            install_req
+        fi
         modify
     fi
 fi
