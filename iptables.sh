@@ -144,12 +144,12 @@ else
         flush
         exit 0
     elif [[ $1 == "menu" ]]; then
-        if ! [ -f ~/.alreadyran ]; then
+        if ! [ -f epfinstalled ]; then
             install_req
         fi
         menu
     else
-        if ! [ -f ~/.alreadyran ]; then
+        if ! [ -f epfinstalled ]; then
             install_req
         fi
         modify
