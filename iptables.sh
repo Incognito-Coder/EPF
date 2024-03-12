@@ -3,6 +3,7 @@
 ip=$1
 ports=$2
 proto=$3
+dport=$4
 
 install_req(){
     clear
@@ -30,6 +31,7 @@ install_req(){
     esac
     clear
 }
+
 usage(){
     echo -e "Usage: iptables.sh 1 2 3\n1: Destination IP\n2: Desired Ports | Example Array of ports: 443,80,2083\n3: Protocol TCP/UDP lowercase."
 }
@@ -73,6 +75,24 @@ modify_nat(){
     iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
 }
 
+port_to_port(){
+    echo -e "Easy Port Forwarder By Incognito Coder\nGithub Page: https://github.com/Incognito-Coder"
+    publicIP=$(hostname -I | awk '{print $1}')
+    interface=$(route | grep '^default' | grep -o '[^ ]*$')
+    echo "Enabling IP Forwarding"
+    sysctl net.ipv4.ip_forward=1 > /dev/null 2>&1
+    if iptables --table nat --list | grep -q "ssh"; then
+        echo "No need to forward SSH Port,Already Exist!"
+    else
+        echo "Forwarding SSH Port to $publicIP"
+        iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination $publicIP
+    fi
+    echo "Moving Port $ports to $ip:$dport"
+    iptables -t nat -A PREROUTING -p $proto --dport $ports -j DNAT --to-destination $ip:$dport
+    echo "Finalizing Changes in IP Tables."
+    iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
+}
+
 flush(){
     echo "Stopping IPv4 firewall and allowing everyone..."
     ipt="/sbin/iptables"
@@ -110,7 +130,12 @@ menu(){
                 break
             ;;
             "Port to Port")
-                echo "you chose choice $REPLY which is $opt"
+                read -p "Enter Dest IP: " ip
+                read -p "Enter IN Port: " ports
+                read -p "Enter OUT Port: " dport
+                read -p "Enter ProtocolType TCP/UDP: " proto
+                port_to_port
+                break
             ;;
             "Flush Rules")
                 flush
@@ -143,7 +168,7 @@ else
     if [[ $1 == "flush" ]]; then
         flush
         exit 0
-    elif [[ $1 == "menu" ]]; then
+        elif [[ $1 == "menu" ]]; then
         if ! [ -f epfinstalled ]; then
             install_req
         fi
