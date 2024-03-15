@@ -41,7 +41,7 @@ usage() {
 
 modify() {
     echo -e "Easy Port Forwarder By Incognito Coder\nGithub Page: https://github.com/Incognito-Coder"
-    publicIP=$(hostname -I | awk '{print $1}')
+    publicIP=$(hostname -i | awk '{print $1}')
     interface=$(route | grep '^default' | grep -o '[^ ]*$')
     echo "Enabling IP Forwarding"
     sysctl net.ipv4.ip_forward=1 >/dev/null 2>&1
@@ -61,7 +61,7 @@ modify() {
 
 modify_nat() {
     echo -e "Easy Port Forwarder By Incognito Coder\nGithub Page: https://github.com/Incognito-Coder"
-    publicIP=$(hostname -I | awk '{print $1}')
+    publicIP=$(hostname -i | awk '{print $1}')
     interface=$(route | grep '^default' | grep -o '[^ ]*$')
     echo "Enabling IP Forwarding"
     sysctl net.ipv4.ip_forward=1 >/dev/null 2>&1
@@ -79,7 +79,7 @@ modify_nat() {
 
 port_to_port() {
     echo -e "Easy Port Forwarder By Incognito Coder\nGithub Page: https://github.com/Incognito-Coder"
-    publicIP=$(hostname -I | awk '{print $1}')
+    publicIP=$(hostname -i | awk '{print $1}')
     interface=$(route | grep '^default' | grep -o '[^ ]*$')
     echo "Enabling IP Forwarding"
     sysctl net.ipv4.ip_forward=1 >/dev/null 2>&1
