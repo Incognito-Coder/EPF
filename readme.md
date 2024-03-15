@@ -32,5 +32,6 @@ Please enter your choice:
 ```
 
 ## Supported OSes
-* Ubuntu
+* Ubuntu|Debian
 * CentOS
+* ArchLinux
