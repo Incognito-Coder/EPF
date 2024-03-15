@@ -25,7 +25,7 @@ install_req() {
         touch epfinstalled
         ;;
     arch | manjaro)
-        pacman -Sy --noconfirm net-tools
+        pacman -Sy --noconfirm net-tools inetutils
         ;;
     *)
         apt install -y -q net-tools iptables-persistent
