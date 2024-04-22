@@ -21,7 +21,7 @@ install_req() {
     echo "The OS release is: $release"
     case "${release}" in
     centos | fedora)
-        yum install -y -q net-tools
+        yum upgrade && yum install -y -q net-tools
         touch epfinstalled
         ;;
     arch | manjaro)
@@ -29,7 +29,7 @@ install_req() {
         touch epfinstalled
         ;;
     *)
-        apt install -y -q net-tools iptables-persistent
+        apt update && apt install -y -q net-tools iptables-persistent
         touch epfinstalled
         ;;
     esac
