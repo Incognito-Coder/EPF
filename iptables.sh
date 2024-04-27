@@ -58,6 +58,7 @@ modify() {
     done
     echo "Finalizing Changes in IP Tables."
     iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
+    menu
 }
 
 modify_nat() {
@@ -76,6 +77,7 @@ modify_nat() {
     iptables -t nat -A PREROUTING -j DNAT --to-destination $ip
     echo "Finalizing Changes in IP Tables."
     iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
+    menu
 }
 
 port_to_port() {
@@ -94,6 +96,7 @@ port_to_port() {
     iptables -t nat -A PREROUTING -p $proto --dport $ports -j DNAT --to-destination $ip:$dport
     echo "Finalizing Changes in IP Tables."
     iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
+    menu
 }
 
 flush() {
@@ -114,12 +117,14 @@ flush() {
     $ipt -t mangle -X
     $ipt -t raw -F
     $ipt -t raw -X
+    menu
 }
 
 menu() {
+    clear
     echo "Welcome to Easy Port Forwarder"
     PS3='Please enter your choice: '
-    options=("Port Forward" "NAT Forward" "Port to Port" "Flush Rules" "Save Rules" "Restore Rules" "Print Usage" "Quit")
+    options=("Port Forward" "NAT Forward" "Port to Port" "Flush Rules" "Save Rules" "Restore Rules" "Show Rules" "Print Usage" "Quit")
     select opt in "${options[@]}"; do
         case $opt in
         "Port Forward")
@@ -153,6 +158,11 @@ menu() {
         "Restore Rules")
             sudo /sbin/iptables-restore </etc/iptables/rules.v4
             echo "Restored."
+            ;;
+        "Show Rules")
+            iptables -t nat --list
+            #!/bin/bash
+            read -n1 -r -p "Press any key to continue..."
             ;;
         "Print Usage")
             usage
