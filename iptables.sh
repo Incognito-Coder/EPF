@@ -124,6 +124,8 @@ port_to_port() {
             iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination 192.168.13.1
             iptables -t nat -A PREROUTING -j DNAT --to-destination 192.168.13.2
             iptables -t nat -A POSTROUTING -j MASQUERADE
+            echo "IP $publicIP moved to $ip"
+            sleep 3
             menu
             break
             ;;
@@ -137,6 +139,8 @@ port_to_port() {
             ip addr add 192.168.13.2/30 dev ipip6Tun_To_IR
             ip link set ipip6Tun_To_IR mtu 1440
             ip link set ipip6Tun_To_IR up
+            echo "IP $publicIP moved to $ip"
+            sleep 3
             menu
             break
             ;;
@@ -168,6 +172,7 @@ flush() {
     $ipt -t mangle -X
     $ipt -t raw -F
     $ipt -t raw -X
+    sleep 3
     menu
 }
 
