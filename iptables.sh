@@ -59,7 +59,6 @@ modify() {
     done
     echo "Finalizing Changes in IP Tables."
     iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
-    menu
 }
 
 modify_nat() {
