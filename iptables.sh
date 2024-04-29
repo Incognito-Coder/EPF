@@ -112,6 +112,10 @@ port_to_port() {
         case $opt in
         "Sender")
             read -p "Enter Dest(receiver) IP: " ip
+            # Clean last tunnel
+            ip tunnel del 6to4_To_KH
+            ip -6 tunnel del ipip6Tun_To_KH
+            # Do new job
             ip tunnel add 6to4_To_KH mode sit remote $ip local $publicIP
             ip -6 addr add fc00::1/64 dev 6to4_To_KH
             ip link set 6to4_To_KH mtu 1480
@@ -131,6 +135,10 @@ port_to_port() {
             ;;
         "Receiver")
             read -p "Enter Target(sender) IP: " ip
+            # Clean last tunnel
+            ip tunnel del 6to4_To_IR
+            ip -6 tunnel del ipip6Tun_To_IR
+            # Do new job
             ip tunnel add 6to4_To_IR mode sit remote $ip local $publicIP
             ip -6 addr add fc00::2/64 dev 6to4_To_IR
             ip link set 6to4_To_IR mtu 1480
