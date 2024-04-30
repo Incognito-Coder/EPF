@@ -152,7 +152,7 @@ port_to_port() {
             menu
             break
             ;;
-        "Reset network")
+        "Reset Network")
             if ip tunnel show | grep -q '6to4'; then
                 echo "Reseting 6TO4 tunnel"
                 ip tunnel del 6to4_To_KH >/dev/null 2>&1
