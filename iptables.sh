@@ -106,7 +106,7 @@ port_to_port() {
     echo "Local Tunnel ipv6 to ipv4"
     publicIP=$(hostname -I | awk '{print $1}')
     PS3='Your current session is? '
-    options=("Sender" "Receiver" "Back")
+    options=("Sender" "Receiver" "Reset Network" "Back")
     select opt in "${options[@]}"; do
         case $opt in
         "Sender")
@@ -123,10 +123,11 @@ port_to_port() {
             ip addr add 192.168.13.1/30 dev ipip6Tun_To_KH
             ip link set ipip6Tun_To_KH mtu 1440
             ip link set ipip6Tun_To_KH up
-            sysctl net.ipv4.ip_forward=1
+            sysctl net.ipv4.ip_forward=1 >/dev/null 2>&1
             iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination 192.168.13.1
             iptables -t nat -A PREROUTING -j DNAT --to-destination 192.168.13.2
-            iptables -t nat -A POSTROUTING -j MASQUERADE
+            interface=$(route | grep '^default' | grep -o '[^ ]*$')
+            iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
             echo "IP $publicIP moved to $ip"
             sleep 3
             menu
@@ -149,6 +150,23 @@ port_to_port() {
             echo "IP $publicIP moved to $ip"
             sleep 3
             menu
+            break
+            ;;
+        "Reset network")
+            if ip tunnel show | grep -q '6to4'; then
+                echo "Reseting 6TO4 tunnel"
+                ip tunnel del 6to4_To_KH >/dev/null 2>&1
+                ip -6 tunnel del ipip6Tun_To_KH >/dev/null 2>&1
+                ip tunnel del 6to4_To_IR >/dev/null 2>&1
+                ip -6 tunnel del ipip6Tun_To_IR >/dev/null 2>&1
+                echo "all tunnels deleted"
+                sleep 1
+                menu
+            else
+                echo "No tunnel found,returing to menu..."
+                sleep 2
+                menu
+            fi
             break
             ;;
         "Back")
