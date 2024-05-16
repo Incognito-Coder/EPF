@@ -127,7 +127,7 @@ port_to_port() {
             iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination 192.168.13.1
             iptables -t nat -A PREROUTING -j DNAT --to-destination 192.168.13.2
             interface=$(route | grep '^default' | grep -o '[^ ]*$')
-            iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
+            iptables -t nat -A POSTROUTING -j MASQUERADE
             echo "IP $publicIP moved to $ip"
             sleep 3
             menu
