@@ -20,7 +20,7 @@ install_req() {
     fi
     echo "The OS release is: $release"
     case "${release}" in
-    centos | fedora)
+    centos | fedora | almalinux)
         yum upgrade && yum install -y -q net-tools
         touch epfinstalled
         ;;

@@ -35,5 +35,6 @@ Please enter your choice:
 * Ubuntu|Debian
 * CentOS
 * ArchLinux
+* AlmaLinux
 ## Stargazers over time
 [![Stargazers over time](https://starchart.cc/Incognito-Coder/EPF.svg?variant=adaptive)](https://starchart.cc/Incognito-Coder/EPF)
