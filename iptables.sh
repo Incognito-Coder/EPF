@@ -159,7 +159,8 @@ port_to_port() {
                 ip tunnel del 6to4_To_IR >/dev/null 2>&1
                 ip -6 tunnel del ipip6Tun_To_IR >/dev/null 2>&1
                 echo "all tunnels deleted"
-                flush >/dev/null 2>&1
+                sleep 1
+                flush
             else
                 echo "No tunnel found,returing to menu..."
                 sleep 2
