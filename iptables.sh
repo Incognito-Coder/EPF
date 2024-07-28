@@ -176,7 +176,69 @@ port_to_port() {
         esac
     done
 }
-
+show_rules() {
+    sudo iptables -t nat -L PREROUTING -n --line-numbers | awk '
+    $1 ~ /^[0-9]+$/ {
+        protocol = $3
+        line_number = $1
+        forwarding = ""
+        port_type = ""
+        ports = ""
+        ip = ""
+    
+        for (i = 6; i <= NF; i++) {
+            if ($i ~ /dpt:/ || $i ~ /dports/) {
+                port_type = ($i ~ /dpt:/) ? "Port:" : "Ports:"
+                ports = $i
+                sub(/dpt:|dports /, "", ports)
+                if (port_type == "Ports:") {
+                    for (j = i + 1; j <= NF && $j !~ /to:/; j++) {
+                        ports = ports "," $j
+                    }
+                    sub(/^,/, "", ports)
+                    sub(/dports,/, "", ports)
+                }
+                for (j = i + 1; j <= NF; j++) {
+                    if ($j ~ /to:/) {
+                        ip = $j
+                        for (k = j + 1; k <= NF; k++) {
+                            ip = ip " " $k
+                        }
+                        sub(/to:/, "IP: ", ip)
+                        break
+                    }
+                }
+                break
+            }
+        }
+        print line_number ") " ip " " port_type " " ports " Protocol: " protocol
+    }'
+}
+remove_rules() {
+    show_rules
+    echo "*) Flush all Rules"
+    echo "0) Back"
+    read -p "Select a Remove option: " Choice
+    case "$Choice" in
+        "*")
+            flush
+            ;;
+        "0")
+            return 1
+            ;;
+        [1-9]*)
+            sudo iptables -t nat -D PREROUTING $Choice
+            sudo iptables -t nat -D POSTROUTING $Choice
+            sudo netfilter-persistent save > /dev/null 2>&1
+            echo "Rule $Choice removed successfully"
+            ;;
+        *)
+            echo "Invalid Choice"
+            sleep 1
+            ;;
+    esac
+    read -p "Press Enter To Continue"
+}
 flush() {
     clear
     echo "Stopping IPv4 firewall and allowing everyone..."
@@ -231,8 +293,9 @@ menu() {
             6to4
             break
             ;;
-        "Flush Rules")
-            flush
+        "Remove Rules")
+            clear
+            remove_rules
             break
             ;;
         "Save Rules")
