@@ -224,7 +224,7 @@ remove_rules() {
             flush
             ;;
         "0")
-            return 1
+            menu
             ;;
         [1-9]*)
             sudo iptables -t nat -D PREROUTING $Choice
@@ -238,6 +238,7 @@ remove_rules() {
             ;;
     esac
     read -p "Press Enter To Continue"
+    menu
 }
 flush() {
     clear
