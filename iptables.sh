@@ -239,7 +239,6 @@ remove_rules() {
         sleep 1
         ;;
     esac
-    menu
 }
 flush() {
     clear
