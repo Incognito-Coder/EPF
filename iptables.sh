@@ -232,13 +232,13 @@ remove_rules() {
         iptables -t nat -D POSTROUTING $Choice
         netfilter-persistent save >/dev/null 2>&1
         echo "Rule $Choice removed successfully"
+        read -p "Press Enter To Continue"
         ;;
     *)
         echo "Invalid Choice"
         sleep 1
         ;;
     esac
-    read -p "Press Enter To Continue"
     menu
 }
 flush() {
