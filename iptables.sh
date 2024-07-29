@@ -266,7 +266,7 @@ menu() {
     clear
     echo "Welcome to Easy Port Forwarder"
     PS3='Please enter your choice: '
-    options=("Port Forward" "NAT Forward" "Port to Port" "Tunnel 6TO4" "Flush Rules" "Save Rules" "Restore Rules" "Show Rules" "Print Usage" "Quit")
+    options=("Port Forward" "NAT Forward" "Port to Port" "Tunnel 6TO4" "Remove Rules" "Save Rules" "Restore Rules" "Show Rules" "Print Usage" "Quit")
     select opt in "${options[@]}"; do
         case $opt in
         "Port Forward")
