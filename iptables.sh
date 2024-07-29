@@ -177,7 +177,7 @@ port_to_port() {
     done
 }
 show_rules() {
-    sudo iptables -t nat -L PREROUTING -n --line-numbers | awk '
+    iptables -t nat -L PREROUTING -n --line-numbers | awk '
     $1 ~ /^[0-9]+$/ {
         protocol = $3
         line_number = $1
@@ -215,27 +215,28 @@ show_rules() {
     }'
 }
 remove_rules() {
+    clear
     show_rules
     echo "*) Flush all Rules"
     echo "0) Back"
     read -p "Select a Remove option: " Choice
     case "$Choice" in
-        "*")
-            flush
-            ;;
-        "0")
-            menu
-            ;;
-        [1-9]*)
-            sudo iptables -t nat -D PREROUTING $Choice
-            sudo iptables -t nat -D POSTROUTING $Choice
-            sudo netfilter-persistent save > /dev/null 2>&1
-            echo "Rule $Choice removed successfully"
-            ;;
-        *)
-            echo "Invalid Choice"
-            sleep 1
-            ;;
+    "*")
+        flush
+        ;;
+    "0")
+        menu
+        ;;
+    [1-9]*)
+        iptables -t nat -D PREROUTING $Choice
+        iptables -t nat -D POSTROUTING $Choice
+        netfilter-persistent save >/dev/null 2>&1
+        echo "Rule $Choice removed successfully"
+        ;;
+    *)
+        echo "Invalid Choice"
+        sleep 1
+        ;;
     esac
     read -p "Press Enter To Continue"
     menu
@@ -295,16 +296,15 @@ menu() {
             break
             ;;
         "Remove Rules")
-            clear
             remove_rules
             break
             ;;
         "Save Rules")
-            sudo /sbin/iptables-save >/etc/iptables/rules.v4
+            /sbin/iptables-save >/etc/iptables/rules.v4
             echo "Saved."
             ;;
         "Restore Rules")
-            sudo /sbin/iptables-restore </etc/iptables/rules.v4
+            /sbin/iptables-restore </etc/iptables/rules.v4
             echo "Restored."
             ;;
         "Show Rules")
