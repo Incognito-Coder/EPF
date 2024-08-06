@@ -51,14 +51,14 @@ modify() {
         echo "No need to forward SSH Port,Already Exist!"
     else
         echo "Forwarding SSH Port to $publicIP"
-        iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination $publicIP
+        iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination "$publicIP"
     fi
-    for i in $(echo $ports | tr "," "\n"); do
+    for i in $(echo "$ports" | tr "," "\n"); do
         echo "Moving Port $i to $ip:$i"
-        iptables -t nat -A PREROUTING -p $proto --dport $i -j DNAT --to-destination $ip
+        iptables -t nat -A PREROUTING -p "$proto" --dport $i -j DNAT --to-destination "$ip"
     done
     echo "Finalizing Changes in IP Tables."
-    iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
+    iptables -t nat -A POSTROUTING -j MASQUERADE -o "$interface"
 }
 
 modify_nat() {
@@ -72,12 +72,12 @@ modify_nat() {
         echo "No need to forward SSH Port,Already Exist!"
     else
         echo "Forwarding SSH Port to $publicIP"
-        iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination $publicIP
+        iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination "$publicIP"
     fi
     echo "Moving NAT to $ip"
-    iptables -t nat -A PREROUTING -j DNAT --to-destination $ip
+    iptables -t nat -A PREROUTING -j DNAT --to-destination "$ip"
     echo "Finalizing Changes in IP Tables."
-    iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
+    iptables -t nat -A POSTROUTING -j MASQUERADE -o "$interface"
     menu
 }
 
@@ -92,12 +92,12 @@ port_to_port() {
         echo "No need to forward SSH Port,Already Exist!"
     else
         echo "Forwarding SSH Port to $publicIP"
-        iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination $publicIP
+        iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination "$publicIP"
     fi
     echo "Moving Port $ports to $ip:$dport"
-    iptables -t nat -A PREROUTING -p $proto --dport $ports -j DNAT --to-destination $ip:$dport
+    iptables -t nat -A PREROUTING -p "$proto" --dport "$ports" -j DNAT --to-destination "$ip:$dport"
     echo "Finalizing Changes in IP Tables."
-    iptables -t nat -A POSTROUTING -j MASQUERADE -o $interface
+    iptables -t nat -A POSTROUTING -j MASQUERADE -o "$interface"
     menu
 }
 
@@ -105,8 +105,8 @@ port_to_port() {
     clear
     echo "Local Tunnel ipv6 to ipv4"
     publicIP=$(hostname -I | awk '{print $1}')
-    PS3='Your current session is? '
-    options=("Sender" "Receiver" "Reset Network" "Back")
+    PS3='Select an option? '
+    options=("Sender" "Receiver" "Reset Network" "Remove Startup" "Back")
     select opt in "${options[@]}"; do
         case $opt in
         "Sender")
@@ -115,7 +115,7 @@ port_to_port() {
             ip tunnel del 6to4_To_KH >/dev/null 2>&1
             ip -6 tunnel del ipip6Tun_To_KH >/dev/null 2>&1
             # Do new job
-            ip tunnel add 6to4_To_KH mode sit remote $ip local $publicIP
+            ip tunnel add 6to4_To_KH mode sit remote "$ip" local "$publicIP"
             ip -6 addr add fc00::1/64 dev 6to4_To_KH
             ip link set 6to4_To_KH mtu 1480
             ip link set 6to4_To_KH up
@@ -129,6 +129,7 @@ port_to_port() {
             iptables -t nat -A POSTROUTING -j MASQUERADE
             echo "IP $publicIP moved to $ip"
             sleep 3
+            startup_prompt 1 "$ip" "$publicIP"
             menu
             break
             ;;
@@ -138,7 +139,7 @@ port_to_port() {
             ip tunnel del 6to4_To_IR >/dev/null 2>&1
             ip -6 tunnel del ipip6Tun_To_IR >/dev/null 2>&1
             # Do new job
-            ip tunnel add 6to4_To_IR mode sit remote $ip local $publicIP
+            ip tunnel add 6to4_To_IR mode sit remote "$ip" local "$publicIP"
             ip -6 addr add fc00::2/64 dev 6to4_To_IR
             ip link set 6to4_To_IR mtu 1480
             ip link set 6to4_To_IR up
@@ -148,6 +149,7 @@ port_to_port() {
             ip link set ipip6Tun_To_IR up
             echo "IP $publicIP moved to $ip"
             sleep 3
+            startup_prompt 2 "$ip" "$publicIP"
             menu
             break
             ;;
@@ -163,6 +165,19 @@ port_to_port() {
                 flush
             else
                 echo "No tunnel found,returing to menu..."
+                sleep 2
+                menu
+            fi
+            break
+            ;;
+        "Remove Startup")
+            if systemctl is-enabled epftunnel.service | grep -q 'enabled'; then
+                systemctl disable epftunnel &> /dev/null
+                echo "EPF Tunnel disabled at startup."
+                sleep 2
+                menu
+            else
+                echo "epftunnel.service already disabled"
                 sleep 2
                 menu
             fi
@@ -228,8 +243,8 @@ remove_rules() {
         menu
         ;;
     [1-9]*)
-        iptables -t nat -D PREROUTING $Choice
-        iptables -t nat -D POSTROUTING $Choice
+        iptables -t nat -D PREROUTING "$Choice"
+        iptables -t nat -D POSTROUTING "$Choice"
         netfilter-persistent save >/dev/null 2>&1
         echo "Rule $Choice removed successfully"
         read -p "Press Enter To Continue"
@@ -261,6 +276,75 @@ flush() {
     $ipt -t raw -X
     sleep 3
     menu
+}
+
+startup_prompt(){
+    read -p "Would you like to run this tunnel at system boot? [y/n]: " choose
+    if [[ "$choose" == "y" || "$choose" == "Y" ]]; then
+        case $1 in
+        "1")
+            cat > /etc/epftunnel.sh <<EOF
+#!/bin/bash
+
+ip tunnel add 6to4_To_KH mode sit remote "$2" local "$3"
+ip -6 addr add fc00::1/64 dev 6to4_To_KH
+ip link set 6to4_To_KH mtu 1480
+ip link set 6to4_To_KH up
+ip -6 tunnel add ipip6Tun_To_KH mode ipip6 remote fc00::2 local fc00::1
+ip addr add 192.168.13.1/30 dev ipip6Tun_To_KH
+ip link set ipip6Tun_To_KH mtu 1440
+ip link set ipip6Tun_To_KH up
+sysctl net.ipv4.ip_forward=1 >/dev/null 2>&1
+iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination 192.168.13.1
+iptables -t nat -A PREROUTING -j DNAT --to-destination 192.168.13.2
+iptables -t nat -A POSTROUTING -j MASQUERADE
+EOF
+            echo "Tunnel setup script created at /etc/epftunnel.sh"
+            chmod +x /etc/epftunnel.sh
+            cat > /etc/systemd/system/epftunnel.service <<EOF
+[Unit]
+Description=EPF Tunnel
+After=network.target
+
+[Service]
+ExecStart=/bin/bash /etc/epftunnel.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+            systemctl daemon-reload &> /dev/null && systemctl enable epftunnel &> /dev/null
+            ;;
+        "2")
+            cat > /etc/epftunnel.sh <<EOF
+#!/bin/bash
+
+ip tunnel add 6to4_To_IR mode sit remote "$2" local "$3"
+ip -6 addr add fc00::2/64 dev 6to4_To_IR
+ip link set 6to4_To_IR mtu 1480
+ip link set 6to4_To_IR up
+ip -6 tunnel add ipip6Tun_To_IR mode ipip6 remote fc00::1 local fc00::2
+ip addr add 192.168.13.2/30 dev ipip6Tun_To_IR
+ip link set ipip6Tun_To_IR mtu 1440
+ip link set ipip6Tun_To_IR up
+EOF
+            echo "Tunnel setup script created at /etc/epftunnel.sh"
+            chmod +x /etc/epftunnel.sh
+            cat > /etc/systemd/system/epftunnel.service <<EOF
+[Unit]
+Description=EPF Tunnel
+After=network.target
+
+[Service]
+ExecStart=/bin/bash /etc/epftunnel.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+            systemctl daemon-reload &> /dev/null && systemctl enable epftunnel &> /dev/null
+            ;;
+        esac      
+    fi
+
 }
 
 menu() {
