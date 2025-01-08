@@ -21,16 +21,16 @@ install_req() {
     echo "The OS release is: $release"
     case "${release}" in
     centos | fedora | almalinux)
-        yum upgrade && yum install -y -q net-tools
-        touch epfinstalled
+        yum upgrade && yum install -y -q net-tools iptables
+        touch .epfinstalled
         ;;
     arch | manjaro)
-        pacman -Sy --noconfirm net-tools inetutils
-        touch epfinstalled
+        pacman -Sy --noconfirm net-tools inetutils iptables
+        touch .epfinstalled
         ;;
     *)
-        apt update && apt install -y -q net-tools iptables-persistent
-        touch epfinstalled
+        apt update && apt install -y -q net-tools iptables-persistent iptables
+        touch .epfinstalled
         ;;
     esac
     clear
@@ -414,12 +414,12 @@ else
         flush
         exit 0
     elif [[ $1 == "menu" ]]; then
-        if ! [ -f epfinstalled ]; then
+        if ! [ -f .epfinstalled ]; then
             install_req
         fi
         menu
     else
-        if ! [ -f epfinstalled ]; then
+        if ! [ -f .epfinstalled ]; then
             install_req
         fi
         modify
