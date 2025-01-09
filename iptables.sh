@@ -9,9 +9,11 @@ install_req() {
     clear
     # Check OS and set release variable
     if [[ -f /etc/os-release ]]; then
+        # shellcheck disable=SC1091
         source /etc/os-release
         release=$ID
     elif [[ -f /usr/lib/os-release ]]; then
+        # shellcheck disable=SC1091
         source /usr/lib/os-release
         release=$ID
     else
@@ -55,7 +57,7 @@ modify() {
     fi
     for i in $(echo "$ports" | tr "," "\n"); do
         echo "Moving Port $i to $ip:$i"
-        iptables -t nat -A PREROUTING -p "$proto" --dport $i -j DNAT --to-destination "$ip"
+        iptables -t nat -A PREROUTING -p "$proto" --dport "$i" -j DNAT --to-destination "$ip"
     done
     echo "Finalizing Changes in IP Tables."
     iptables -t nat -A POSTROUTING -j MASQUERADE -o "$interface"
@@ -110,7 +112,7 @@ port_to_port() {
     select opt in "${options[@]}"; do
         case $opt in
         "Sender")
-            read -p "Enter Dest(receiver) IP: " ip
+            read -p -r "Enter Dest(receiver) IP: " ip
             # Clean last tunnel
             ip tunnel del 6to4_To_KH >/dev/null 2>&1
             ip -6 tunnel del ipip6Tun_To_KH >/dev/null 2>&1
@@ -134,7 +136,7 @@ port_to_port() {
             break
             ;;
         "Receiver")
-            read -p "Enter Target(sender) IP: " ip
+            read -p -r "Enter Target(sender) IP: " ip
             # Clean last tunnel
             ip tunnel del 6to4_To_IR >/dev/null 2>&1
             ip -6 tunnel del ipip6Tun_To_IR >/dev/null 2>&1
@@ -234,7 +236,7 @@ remove_rules() {
     show_rules
     echo "*) Flush all Rules"
     echo "0) Back"
-    read -p "Select a Remove option: " Choice
+    read -p -r "Select a Remove option: " Choice
     case "$Choice" in
     "*")
         flush
@@ -247,7 +249,7 @@ remove_rules() {
         iptables -t nat -D POSTROUTING "$Choice"
         netfilter-persistent save >/dev/null 2>&1
         echo "Rule $Choice removed successfully"
-        read -p "Press Enter To Continue"
+        read -p -r "Press Enter To Continue"
         ;;
     *)
         echo "Invalid Choice"
@@ -279,7 +281,7 @@ flush() {
 }
 
 startup_prompt(){
-    read -p "Would you like to run this tunnel at system boot? [y/n]: " choose
+    read -p -r "Would you like to run this tunnel at system boot? [y/n]: " choose
     if [[ "$choose" == "y" || "$choose" == "Y" ]]; then
         case $1 in
         "1")
@@ -347,30 +349,73 @@ EOF
 
 }
 
+set_mtu(){
+    PS3='Please select your desired MTU: '
+    interface=$(route | grep '^default' | grep -o '[^ ]*$')
+    options=("1420" "1480" "1500" "9000" "Back")
+    select opt in "${options[@]}"; do
+        case $opt in
+        "1420")
+            ip li set mtu 1420 dev "$interface"
+            echo "MTU of $interface sets to 1420"
+            sleep 2
+            menu
+            break
+            ;;
+        "1480")
+            ip li set mtu 1480 dev "$interface"
+            echo "MTU of $interface sets to 1480"
+            sleep 2
+            menu
+            break
+            ;;
+        "1500")
+            ip li set mtu 1500 dev "$interface"
+            echo "MTU of $interface sets to 1500"
+            sleep 2
+            menu
+            break
+            ;;
+        "9000")
+            ip li set mtu 9000 dev "$interface"
+            echo "MTU of $interface sets to 9000"
+            sleep 2
+            menu
+            break
+            ;;
+        "Back")
+            menu
+            break
+            ;;
+        *) echo "invalid option $REPLY" ;;
+        esac
+    done
+}
+
 menu() {
     clear
     echo "Welcome to Easy Port Forwarder"
     PS3='Please enter your choice: '
-    options=("Port Forward" "NAT Forward" "Port to Port" "Tunnel 6TO4" "Remove Rules" "Save Rules" "Restore Rules" "Show Rules" "Print Usage" "Quit")
+    options=("Port Forward" "NAT Forward" "Port to Port" "Tunnel 6TO4" "Remove Rules" "Save Rules" "Restore Rules" "Set MTU" "Show Rules" "Print Usage" "Quit")
     select opt in "${options[@]}"; do
         case $opt in
         "Port Forward")
-            read -p "Enter Dest IP: " ip
-            read -p "Enter Dest Port/Ports separated: " ports
-            read -p "Enter ProtocolType TCP/UDP: " proto
+            read -p -r "Enter Dest IP: " ip
+            read -p -r "Enter Dest Port/Ports separated: " ports
+            read -p -r "Enter ProtocolType TCP/UDP: " proto
             modify
             break
             ;;
         "NAT Forward")
-            read -p "Enter Dest IP: " ip
+            read -p -r "Enter Dest IP: " ip
             modify_nat
             break
             ;;
         "Port to Port")
-            read -p "Enter Dest IP: " ip
-            read -p "Enter IN Port: " ports
-            read -p "Enter OUT Port: " dport
-            read -p "Enter ProtocolType TCP/UDP: " proto
+            read -p -r "Enter Dest IP: " ip
+            read -p -r "Enter IN Port: " ports
+            read -p -r "Enter OUT Port: " dport
+            read -p -r "Enter ProtocolType TCP/UDP: " proto
             port_to_port
             break
             ;;
@@ -389,6 +434,10 @@ menu() {
         "Restore Rules")
             /sbin/iptables-restore </etc/iptables/rules.v4
             echo "Restored."
+            ;;
+        "Set MTU")
+            set_mtu
+            break
             ;;
         "Show Rules")
             iptables -t nat --list
