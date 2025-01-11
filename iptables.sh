@@ -112,7 +112,7 @@ port_to_port() {
     select opt in "${options[@]}"; do
         case $opt in
         "Sender")
-            read -p -r "Enter Dest(receiver) IP: " ip
+            read -p "Enter Dest(receiver) IP: " ip
             # Clean last tunnel
             ip tunnel del 6to4_To_KH >/dev/null 2>&1
             ip -6 tunnel del ipip6Tun_To_KH >/dev/null 2>&1
@@ -136,7 +136,7 @@ port_to_port() {
             break
             ;;
         "Receiver")
-            read -p -r "Enter Target(sender) IP: " ip
+            read -p "Enter Target(sender) IP: " ip
             # Clean last tunnel
             ip tunnel del 6to4_To_IR >/dev/null 2>&1
             ip -6 tunnel del ipip6Tun_To_IR >/dev/null 2>&1
@@ -236,7 +236,7 @@ remove_rules() {
     show_rules
     echo "*) Flush all Rules"
     echo "0) Back"
-    read -p -r "Select a Remove option: " Choice
+    read -p "Select a Remove option: " Choice
     case "$Choice" in
     "*")
         flush
@@ -249,7 +249,7 @@ remove_rules() {
         iptables -t nat -D POSTROUTING "$Choice"
         netfilter-persistent save >/dev/null 2>&1
         echo "Rule $Choice removed successfully"
-        read -p -r "Press Enter To Continue"
+        read -p "Press Enter To Continue"
         ;;
     *)
         echo "Invalid Choice"
@@ -281,7 +281,7 @@ flush() {
 }
 
 startup_prompt(){
-    read -p -r "Would you like to run this tunnel at system boot? [y/n]: " choose
+    read -p "Would you like to run this tunnel at system boot? [y/n]: " choose
     if [[ "$choose" == "y" || "$choose" == "Y" ]]; then
         case $1 in
         "1")
@@ -400,22 +400,22 @@ menu() {
     select opt in "${options[@]}"; do
         case $opt in
         "Port Forward")
-            read -p -r "Enter Dest IP: " ip
-            read -p -r "Enter Dest Port/Ports separated: " ports
-            read -p -r "Enter ProtocolType TCP/UDP: " proto
+            read -p "Enter Dest IP: " ip
+            read -p "Enter Dest Port/Ports separated: " ports
+            read -p "Enter ProtocolType TCP/UDP: " proto
             modify
             break
             ;;
         "NAT Forward")
-            read -p -r "Enter Dest IP: " ip
+            read -p "Enter Dest IP: " ip
             modify_nat
             break
             ;;
         "Port to Port")
-            read -p -r "Enter Dest IP: " ip
-            read -p -r "Enter IN Port: " ports
-            read -p -r "Enter OUT Port: " dport
-            read -p -r "Enter ProtocolType TCP/UDP: " proto
+            read -p "Enter Dest IP: " ip
+            read -p "Enter IN Port: " ports
+            read -p "Enter OUT Port: " dport
+            read -p "Enter ProtocolType TCP/UDP: " proto
             port_to_port
             break
             ;;
