@@ -393,10 +393,11 @@ set_mtu(){
 }
 
 update_script(){
-    wget --no-check-certificate -O epf.sh https://raw.githubusercontent.com/Incognito-Coder/EPF/master/iptables.sh
+    wget --no-check-certificate -O epf.sh https://raw.githubusercontent.com/Incognito-Coder/EPF/master/iptables.sh &> /dev/null
     chmod +x epf.sh
     if [[ $? == 0 ]]; then
         echo -e "Upgrade script succeeded, Please rerun the script"
+        exit 0
     else
         echo -e "Failed to update the script."
         return 1

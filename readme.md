@@ -26,8 +26,8 @@ sudo ./epf.sh menu
 ```
 root@fakemind:~$ sudo ./epf.sh menu
 Welcome to Easy Port Forwarder
-1) Port Forward     3) Port to Port    5) Remove Rules    7) Restore Rules   9) Show Rules     11) Quit
-2) NAT Forward      4) Tunnel 6TO4     6) Save Rules      8) Set MTU        10) Print Usage
+1) Port Forward     3) Port to Port    5) Remove Rules    7) Restore Rules   9) Show Rules     11) Print Usage
+2) NAT Forward      4) Tunnel 6TO4     6) Save Rules      8) Set MTU        10) Update Script  12) Quit
 Please enter your choice:
 ```
 
