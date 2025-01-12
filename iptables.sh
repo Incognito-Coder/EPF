@@ -392,11 +392,22 @@ set_mtu(){
     done
 }
 
+update_script(){
+    wget --no-check-certificate -O epf.sh https://raw.githubusercontent.com/Incognito-Coder/EPF/master/iptables.sh
+    chmod +x epf.sh
+    if [[ $? == 0 ]]; then
+        echo -e "Upgrade script succeeded, Please rerun the script"
+    else
+        echo -e "Failed to update the script."
+        return 1
+    fi
+}
+
 menu() {
     clear
     echo "Welcome to Easy Port Forwarder"
     PS3='Please enter your choice: '
-    options=("Port Forward" "NAT Forward" "Port to Port" "Tunnel 6TO4" "Remove Rules" "Save Rules" "Restore Rules" "Set MTU" "Show Rules" "Print Usage" "Quit")
+    options=("Port Forward" "NAT Forward" "Port to Port" "Tunnel 6TO4" "Remove Rules" "Save Rules" "Restore Rules" "Set MTU" "Show Rules" "Update Script" "Print Usage" "Quit")
     select opt in "${options[@]}"; do
         case $opt in
         "Port Forward")
@@ -442,6 +453,9 @@ menu() {
         "Show Rules")
             iptables -t nat --list
             read -n1 -r -p "Press any key to continue..."
+            ;;
+        "Update Script")
+            update_script
             ;;
         "Print Usage")
             usage
