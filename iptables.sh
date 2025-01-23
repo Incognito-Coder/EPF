@@ -352,9 +352,16 @@ EOF
 set_mtu(){
     PS3='Please select your desired MTU: '
     interface=$(route | grep '^default' | grep -o '[^ ]*$')
-    options=("1420" "1480" "1500" "9000" "Back")
+    options=("1300" "1420" "1480" "1500" "9000" "Back")
     select opt in "${options[@]}"; do
         case $opt in
+        "1300")
+            ip li set mtu 1300 dev "$interface"
+            echo "MTU of $interface sets to 1300"
+            sleep 2
+            menu
+            break
+            ;;
         "1420")
             ip li set mtu 1420 dev "$interface"
             echo "MTU of $interface sets to 1420"
@@ -406,7 +413,7 @@ update_script(){
 
 menu() {
     clear
-    echo "Welcome to Easy Port Forwarder"
+    echo "Welcome to Easy Port Forwarder & Tunneling"
     PS3='Please enter your choice: '
     options=("Port Forward" "NAT Forward" "Port to Port" "Tunnel 6TO4" "Remove Rules" "Save Rules" "Restore Rules" "Set MTU" "Show Rules" "Update Script" "Print Usage" "Quit")
     select opt in "${options[@]}"; do
